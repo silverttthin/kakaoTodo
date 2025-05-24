@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: kakaoTodo
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/kakao_todo
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+
+
+
+
+  sql:
+    init:
+      schema-locations: classpath:schema.sql
+      mode: always
+      encoding: UTF-8
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+
