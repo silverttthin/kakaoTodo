@@ -29,7 +29,7 @@ public class TodoController {
 
 	// 단건 조회
 	@GetMapping("/{todoId}")
-	public ResponseEntity<GetTodoResponse> getTodo(@PathVariable Integer todoId) {
+	public ResponseEntity<GetTodoResponse> getTodo(@PathVariable Long todoId) {
 		return ResponseEntity.ok(todoService.findById(todoId));
 	}
 

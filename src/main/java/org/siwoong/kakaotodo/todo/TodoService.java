@@ -38,7 +38,7 @@ public class TodoService {
 	}
 
 	// 단건 조회
-	public GetTodoResponse findById(int id) {
+	public GetTodoResponse findById(Long id) {
 		String sql = """
 					    SELECT id, content, creator, created_at AS createdAt, updated_at AS updatedAt
 					    FROM todos WHERE id = ?
@@ -70,17 +70,17 @@ public class TodoService {
 
 
 	// 수정
-	public GetTodoResponse update(Integer postId, UpdateTodoRequest request) {
+	public GetTodoResponse update(Long todoId, UpdateTodoRequest request) {
 		String selectSql = "SELECT password FROM todos WHERE id = ?";
-		String dbPassword = jdbc.query(selectSql, (rs) -> rs.next() ? rs.getString("password") : null, postId);
+		String dbPassword = jdbc.query(selectSql, (rs) -> rs.next() ? rs.getString("password") : null, todoId);
 		if (dbPassword == null) throw new RuntimeException("해당 id를 가진 todo 없음");
 		if (!dbPassword.equals(request.password())) throw new RuntimeException("비밀번호가 틀림");
 
 		String updateSql  = "UPDATE todos SET creator = ?, content = ?, updated_at = NOW() WHERE id = ?";
-		int rows = jdbc.update(updateSql, request.creator(), request.content(), postId);
+		int rows = jdbc.update(updateSql, request.creator(), request.content(), todoId);
 		if(rows != 1) throw new RuntimeException("수정에 실패했습니다");
 
-		return findById(postId);
+		return findById(todoId);
 	}
 
 
