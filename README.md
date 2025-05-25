@@ -1,13 +1,19 @@
 # BE 2차 과제 : 일정 관리 앱 만들기
 
 본 프로젝트는 카카오테크캠퍼스 BE 코스의 1단계 과정 2차 과제입니다.  
-SpringBoot + Mysql(docker로 띄움) + **JDBC**를 사용해 일정(todo)을 관리하는 앱입니다.
-
+SpringBoot + Mysql(docker로 띄움) + **JDBC**를 사용해 일정(todo)을 관리하는 앱입니다.  
+과제의 기초 요구사항은 
 ### Why JDBC why???
 <img width="643" alt="image" src="https://github.com/user-attachments/assets/21323108-6e88-4422-a7c9-53f9d529f31d" />
 
-실제로 jdbc를 통해 sql 지역변수들을 많이 작성하며 연습해볼 수 있었으며 덕분에 db값들을 가져오는 것을 직접 구현할 수 있었다.  
-또한 JPA의 다양한 기능들에 대해 내심 감사함을 느끼는 기회를 가졌다.
+실제로 jdbc를 통해 sql 지역변수들을 많이 작성하며 연습해볼 수 있었으며 덕분에 db값들을 가져오는 것을 직접 구현할 수 있었습니다.  
+또한 JPA의 다양한 기능들에 대해 내심 감사함을 느끼는 기회를 가졌습니다.  
+
+
+### 필수기능과 도전기능
+본 프로젝트는 도전기능 포함 모든 기능을 구현하였습니다. 
+- 필수기능은 [3번째 커밋](https://github.com/silverttthin/kakaoTodo/commit/62e011b226aad2a73275079479cba99ed078a37e)에 기록을 남겼습니다.
+- 나머지 12개의 커밋은 모두 도전기능 사항들을 구현하는 과정의 커밋들입니다.
 
 
 ### ERD
