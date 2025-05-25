@@ -1,6 +1,7 @@
 package org.siwoong.kakaotodo.todo.dto;
 
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,6 +15,10 @@ import java.time.LocalDateTime;
 public class GetTodoResponse {
 	Integer id;
 	Integer userId;
+	@NotBlank
+	String userName;
+	@NotBlank
+	String userEmail;
 	String content;
 	LocalDateTime createdAt;
 	LocalDateTime updatedAt;

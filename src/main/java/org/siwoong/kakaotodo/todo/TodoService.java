@@ -50,9 +50,18 @@ public class TodoService {
 	// 단건 조회
 	public GetTodoResponse findById(Long todoId) {
 		String sql = """
-					    SELECT id, content, user_id AS userId, created_at AS createdAt, updated_at AS updatedAt
-					    FROM todos WHERE id = ?
-					""";
+            SELECT
+              t.id,
+              t.user_id    AS userId,
+              u.name       AS userName,
+              u.email      AS userEmail,
+              t.content,
+              t.created_at AS createdAt,
+              t.updated_at AS updatedAt
+            FROM todos t
+            JOIN users u ON t.user_id = u.id
+            WHERE t.id = ?
+            """;
 
 		return jdbc.query(sql, new BeanPropertyRowMapper<>(GetTodoResponse.class), todoId)
 			.stream().findFirst().orElseThrow(() -> {throw new RuntimeException("해당 id를 가진 todo 없음");});
@@ -67,18 +76,40 @@ public class TodoService {
 
 		if (userId == null) {
 			// 쿼리변수없으면 걍 수정일 기반 전체 목록
-			String sql = "SELECT id, user_id AS userId, content, "
-				+ " created_at AS createdAt, updated_at AS updatedAt FROM todos"
-				+ " ORDER BY updated_at DESC"
-				+ " LIMIT ? OFFSET ?";
+			String sql = """
+				SELECT
+				    t.id,
+				    t.user_id	AS userId,
+				    u.name       AS userName,
+				    u.email      AS userEmail,
+				    t.content,
+				    t.created_at AS createdAt,
+				    t.updated_at AS updatedAt
+				FROM todos t
+				JOIN users u ON t.user_id = u.id
+				ORDER BY t.updated_at DESC
+				LIMIT ? OFFSET ?
+				""";
 
 			return jdbc.query(sql, new BeanPropertyRowMapper<>(GetTodoResponse.class), size, offset);
 		} else {
 			// userId가 있다면 해당 유저의 투두 가져오기
-			String sql = "SELECT id, user_id AS userId, content, created_at AS createdAt, updated_at AS updatedAt FROM todos"
-				+ " WHERE user_id = ?"
-				+ " ORDER BY updated_at DESC"
-				+ " LIMIT ? OFFSET ?";
+			String sql = """
+				SELECT
+				    t.id,
+				    t.user_id	AS userId,
+				    u.name       AS userName,
+				    u.email      AS userEmail,
+				    t.content,
+				    t.created_at AS createdAt,
+				    t.updated_at AS updatedAt
+				FROM todos t
+				JOIN users u ON t.user_id = u.id
+				WHERE t.user_id = ?
+				ORDER BY t.updated_at DESC
+				LIMIT ? OFFSET ?
+				""";
+
 
 			return jdbc.query(sql, new BeanPropertyRowMapper<>(GetTodoResponse.class), userId, size, offset);
 		}
