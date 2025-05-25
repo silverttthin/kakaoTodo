@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class GetTodoResponse {
 	Integer id;
+	Integer userId;
 	String content;
-	String creator;
 	LocalDateTime createdAt;
 	LocalDateTime updatedAt;
 

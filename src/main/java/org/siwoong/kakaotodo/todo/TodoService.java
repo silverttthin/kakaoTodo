@@ -25,10 +25,10 @@ public class TodoService {
 
 	// 투두 생성
 	public Integer create(CreateTodoRequest todo) {
-		String sql = "INSERT INTO todos (creator, password, content, created_at, updated_at) VALUES (?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO todos (user_id, password, content, created_at, updated_at) VALUES (?, ?, ?, ?, ?)";
 		LocalDateTime now = LocalDateTime.now();
 		jdbc.update(sql,
-			todo.creator(),
+			todo.userId(),
 			todo.password(),
 			todo.content(),
 			Timestamp.valueOf(now),
@@ -40,7 +40,7 @@ public class TodoService {
 	// 단건 조회
 	public GetTodoResponse findById(Long id) {
 		String sql = """
-					    SELECT id, content, creator, created_at AS createdAt, updated_at AS updatedAt
+					    SELECT id, content, user_id AS userId, created_at AS createdAt, updated_at AS updatedAt
 					    FROM todos WHERE id = ?
 					""";
 
@@ -49,10 +49,19 @@ public class TodoService {
 	}
 
 	// 전체 조회
-	public List<GetTodoResponse> findAll() {
-		String sql = "SELECT id, content, creator, created_at AS createdAt, updated_at AS updatedAt FROM todos"
-			+ " ORDER BY updated_at DESC";
-		return jdbc.query(sql, new BeanPropertyRowMapper<>(GetTodoResponse.class));
+	public List<GetTodoResponse> findAll(Long userId) {
+		if (userId == null) { // 쿼리변수없으면 걍 수정일 기반 목록
+			String sql = "SELECT id, user_id AS userId, content, created_at AS createdAt, updated_at AS updatedAt FROM todos"
+				+ " ORDER BY updated_at DESC";
+
+			return jdbc.query(sql, new BeanPropertyRowMapper<>(GetTodoResponse.class));
+		} else {
+			String sql = "SELECT id, user_id AS userId, content, created_at AS createdAt, updated_at AS updatedAt FROM todos"
+				+ " WHERE user_id = ?"
+				+ " ORDER BY updated_at DESC";
+
+			return jdbc.query(sql, new BeanPropertyRowMapper<>(GetTodoResponse.class), userId);
+		}
 	}
 
 	// 삭제
@@ -82,6 +91,7 @@ public class TodoService {
 
 		return findById(todoId);
 	}
+
 
 
 }

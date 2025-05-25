@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/todos")
+@RequestMapping("todos")
 public class TodoController {
 
 	private final TodoService todoService;
@@ -35,9 +35,10 @@ public class TodoController {
 
 	// 목록 조회
 	@GetMapping
-	public ResponseEntity<List<GetTodoResponse>> getTodos() {
-		return ResponseEntity.ok(todoService.findAll());
+	public ResponseEntity<List<GetTodoResponse>> getTodos(@RequestParam(required = false) Long userId) {
+		return ResponseEntity.ok(todoService.findAll(userId));
 	}
+
 
 	// 삭제
 	@DeleteMapping("/{todoId}")
