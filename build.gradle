@@ -33,6 +33,8 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'  // 이것이 핵심!
     runtimeOnly 'com.mysql:mysql-connector-j'  // 이 줄 추가
+    implementation('org.springframework.boot:spring-boot-starter-validation')
+
 
 }
 
