@@ -7,9 +7,12 @@ import org.siwoong.kakaotodo.todo.dto.CreateTodoRequest;
 import org.siwoong.kakaotodo.todo.dto.DeleteTodoRequest;
 import org.siwoong.kakaotodo.todo.dto.GetTodoResponse;
 import org.siwoong.kakaotodo.todo.dto.UpdateTodoRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.ErrorResponse;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -26,7 +29,7 @@ public class TodoService {
 	public void validateUserExist(Long userId) {
 		String checkUserSql = "SELECT COUNT(*) FROM users WHERE id = ?";
 		Integer cnt = jdbc.queryForObject(checkUserSql,Integer.class, userId);
-		if(cnt == 0) throw new RuntimeException("[USER ERROR]존재하지 않는 유저입니다");
+		if(cnt == 0) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다");
 	}
 
 	// 투두 생성
@@ -110,7 +113,6 @@ public class TodoService {
 				LIMIT ? OFFSET ?
 				""";
 
-
 			return jdbc.query(sql, new BeanPropertyRowMapper<>(GetTodoResponse.class), userId, size, offset);
 		}
 	}
@@ -123,8 +125,8 @@ public class TodoService {
 		// 게시글 존재 검증 및 비번검증
 		String selectSql = "SELECT password FROM todos WHERE id = ?";
 		String dbPassword = jdbc.query(selectSql, (rs) -> rs.next() ? rs.getString("password") : null, todoId);
-		if (dbPassword == null) throw new RuntimeException("해당 id를 가진 todo 없음");
-		if(!dbPassword.equals(request.password())) throw new RuntimeException("비밀번호가 틀림");
+		if (dbPassword == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"해당 id를 가진 todo 없음");
+		if(!dbPassword.equals(request.password())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"비밀번호가 틀림");
 
 		// 삭제
 		String sql = "DELETE FROM todos WHERE id = ?";
@@ -141,8 +143,8 @@ public class TodoService {
 		// 게시글 존재 검증 및 비번검증
 		String selectSql = "SELECT password FROM todos WHERE id = ?";
 		String dbPassword = jdbc.query(selectSql, (rs) -> rs.next() ? rs.getString("password") : null, todoId);
-		if (dbPassword == null) throw new RuntimeException("해당 id를 가진 todo 없음");
-		if (!dbPassword.equals(request.password())) throw new RuntimeException("비밀번호가 틀림");
+		if (dbPassword == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"해당 id를 가진 todo 없음");
+		if(!dbPassword.equals(request.password())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"비밀번호가 틀림");
 
 		// 수정
 		String updateSql  = "UPDATE todos SET content = ?, updated_at = NOW() WHERE id = ?";
