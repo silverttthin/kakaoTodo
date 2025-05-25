@@ -35,8 +35,9 @@ public class TodoController {
 
 	// 목록 조회
 	@GetMapping
-	public ResponseEntity<List<GetTodoResponse>> getTodos(@RequestParam(required = false) Long userId) {
-		return ResponseEntity.ok(todoService.findAll(userId));
+	public ResponseEntity<List<GetTodoResponse>> getTodos(@RequestParam(required = false) Long userId,
+		            @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "2") int size) {
+		return ResponseEntity.ok(todoService.findAll(userId, page, size));
 	}
 
 

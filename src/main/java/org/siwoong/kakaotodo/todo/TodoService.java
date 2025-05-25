@@ -59,20 +59,28 @@ public class TodoService {
 	}
 
 	// 전체 조회
-	public List<GetTodoResponse> findAll(Long userId) {
+	public List<GetTodoResponse> findAll(Long userId, int page, int size) {
+
+		if(page<1) page = 1;
+
+		int offset = (page - 1) * size;
+
 		if (userId == null) {
 			// 쿼리변수없으면 걍 수정일 기반 전체 목록
-			String sql = "SELECT id, user_id AS userId, content, created_at AS createdAt, updated_at AS updatedAt FROM todos"
-				+ " ORDER BY updated_at DESC";
+			String sql = "SELECT id, user_id AS userId, content, "
+				+ " created_at AS createdAt, updated_at AS updatedAt FROM todos"
+				+ " ORDER BY updated_at DESC"
+				+ " LIMIT ? OFFSET ?";
 
-			return jdbc.query(sql, new BeanPropertyRowMapper<>(GetTodoResponse.class));
+			return jdbc.query(sql, new BeanPropertyRowMapper<>(GetTodoResponse.class), size, offset);
 		} else {
 			// userId가 있다면 해당 유저의 투두 가져오기
 			String sql = "SELECT id, user_id AS userId, content, created_at AS createdAt, updated_at AS updatedAt FROM todos"
 				+ " WHERE user_id = ?"
-				+ " ORDER BY updated_at DESC";
+				+ " ORDER BY updated_at DESC"
+				+ " LIMIT ? OFFSET ?";
 
-			return jdbc.query(sql, new BeanPropertyRowMapper<>(GetTodoResponse.class), userId);
+			return jdbc.query(sql, new BeanPropertyRowMapper<>(GetTodoResponse.class), userId, size, offset);
 		}
 	}
 
