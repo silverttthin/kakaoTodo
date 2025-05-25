@@ -1,6 +1,7 @@
 package org.siwoong.kakaotodo.todo.dto;
 
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,7 @@ public class GetTodoResponse {
 	Integer userId;
 	@NotBlank
 	String userName;
-	@NotBlank
+	@NotBlank @Email
 	String userEmail;
 	String content;
 	LocalDateTime createdAt;
