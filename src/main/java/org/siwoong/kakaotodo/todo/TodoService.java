@@ -8,14 +8,11 @@ import org.siwoong.kakaotodo.todo.dto.DeleteTodoRequest;
 import org.siwoong.kakaotodo.todo.dto.GetTodoResponse;
 import org.siwoong.kakaotodo.todo.dto.UpdateTodoRequest;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
+
 import java.util.List;
 
 
@@ -23,137 +20,73 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TodoService {
 
-	// jdbc 빈 가져오기
-	private final JdbcTemplate jdbc;
+	private final TodoRepository todoRepository;
 
-	public void validateUserExist(Long userId) {
-		String checkUserSql = "SELECT COUNT(*) FROM users WHERE id = ?";
-		Integer cnt = jdbc.queryForObject(checkUserSql,Integer.class, userId);
-		if(cnt == 0) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다");
+	// 유저 디비 존재여부 검증
+	private void checkUser(Long userId) {
+		if (!todoRepository.existsUser(userId)) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 유저입니다");
+		}
 	}
+
 
 	// 투두 생성
 	public Integer create(CreateTodoRequest todo) {
 		// user가 있는지 검증
-		validateUserExist(todo.userId());
-
-		// 입력값 기반으로 생성 쿼리 생성 후 저장
-		String sql = "INSERT INTO todos (user_id, password, content, created_at, updated_at) VALUES (?, ?, ?, ?, ?)";
-		LocalDateTime now = LocalDateTime.now();
-		jdbc.update(sql,
-			todo.userId(),
-			todo.password(),
-			todo.content(),
-			Timestamp.valueOf(now),
-			Timestamp.valueOf(now));
-
-		return jdbc.queryForObject("SELECT LAST_INSERT_ID()", Integer.class);
+		checkUser(todo.userId());
+		return todoRepository.insertTodo(todo);
 	}
 
 	// 단건 조회
 	public GetTodoResponse findById(Long todoId) {
-		String sql = """
-            SELECT
-              t.id,
-              t.user_id    AS userId,
-              u.name       AS userName,
-              u.email      AS userEmail,
-              t.content,
-              t.created_at AS createdAt,
-              t.updated_at AS updatedAt
-            FROM todos t
-            JOIN users u ON t.user_id = u.id
-            WHERE t.id = ?
-            """;
-
-		return jdbc.query(sql, new BeanPropertyRowMapper<>(GetTodoResponse.class), todoId)
-			.stream().findFirst().orElseThrow(() -> {throw new RuntimeException("해당 id를 가진 todo 없음");});
+		GetTodoResponse todo =  todoRepository.findById(todoId);
+		if(todo == null)
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 투두입니다");
+		return todo;
 	}
 
 	// 전체 조회
 	public List<GetTodoResponse> findAll(Long userId, int page, int size) {
-
-		if(page<1) page = 1;
-
+		// 1미만 입력 시 페이지 반드시 1로 보정
+		if (page < 1) page = 1;
 		int offset = (page - 1) * size;
-
-		if (userId == null) {
-			// 쿼리변수없으면 걍 수정일 기반 전체 목록
-			String sql = """
-				SELECT
-				    t.id,
-				    t.user_id	AS userId,
-				    u.name       AS userName,
-				    u.email      AS userEmail,
-				    t.content,
-				    t.created_at AS createdAt,
-				    t.updated_at AS updatedAt
-				FROM todos t
-				JOIN users u ON t.user_id = u.id
-				ORDER BY t.updated_at DESC
-				LIMIT ? OFFSET ?
-				""";
-
-			return jdbc.query(sql, new BeanPropertyRowMapper<>(GetTodoResponse.class), size, offset);
-		} else {
-			// userId가 있다면 해당 유저의 투두 가져오기
-			String sql = """
-				SELECT
-				    t.id,
-				    t.user_id	AS userId,
-				    u.name       AS userName,
-				    u.email      AS userEmail,
-				    t.content,
-				    t.created_at AS createdAt,
-				    t.updated_at AS updatedAt
-				FROM todos t
-				JOIN users u ON t.user_id = u.id
-				WHERE t.user_id = ?
-				ORDER BY t.updated_at DESC
-				LIMIT ? OFFSET ?
-				""";
-
-			return jdbc.query(sql, new BeanPropertyRowMapper<>(GetTodoResponse.class), userId, size, offset);
-		}
+		return todoRepository.findAll(userId, offset, size);
 	}
 
 	// 삭제
-	public void delete(Long todoId, DeleteTodoRequest request) {
-		// 유저 검증
-		validateUserExist(request.userId());
+	public void delete(Long todoId, DeleteTodoRequest req) {
+		checkUser(req.userId());
 
-		// 게시글 존재 검증 및 비번검증
-		String selectSql = "SELECT password FROM todos WHERE id = ?";
-		String dbPassword = jdbc.query(selectSql, (rs) -> rs.next() ? rs.getString("password") : null, todoId);
-		if (dbPassword == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"해당 id를 가진 todo 없음");
-		if(!dbPassword.equals(request.password())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"비밀번호가 틀림");
+		String dbPwd = todoRepository.findPasswordById(todoId);
+		if (dbPwd == null)
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 id의 todo가 없습니다");
 
-		// 삭제
-		String sql = "DELETE FROM todos WHERE id = ?";
-		jdbc.update(sql, todoId);
+		if (!dbPwd.equals(req.password()))
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호가 틀립니다");
+
+
+		todoRepository.deleteById(todoId);
 	}
 
 
 	// 수정
-	public GetTodoResponse update(Long todoId, UpdateTodoRequest request) {
+	public GetTodoResponse update(Long todoId, UpdateTodoRequest req) {
+		checkUser(req.userId());
 
-		//유저 검증
-		validateUserExist(request.userId());
+		String dbPwd = todoRepository.findPasswordById(todoId);
+		if (dbPwd == null)
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 id의 todo가 없습니다");
 
-		// 게시글 존재 검증 및 비번검증
-		String selectSql = "SELECT password FROM todos WHERE id = ?";
-		String dbPassword = jdbc.query(selectSql, (rs) -> rs.next() ? rs.getString("password") : null, todoId);
-		if (dbPassword == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"해당 id를 가진 todo 없음");
-		if(!dbPassword.equals(request.password())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"비밀번호가 틀림");
+		if (!dbPwd.equals(req.password()))
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호가 틀립니다");
 
-		// 수정
-		String updateSql  = "UPDATE todos SET content = ?, updated_at = NOW() WHERE id = ?";
-		int rows = jdbc.update(updateSql, request.content(), todoId);
-		if(rows != 1) throw new RuntimeException("수정에 실패했습니다");
+		int updated = todoRepository.updateContent(todoId, req.content());
+
+		if (updated != 1) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "수정에 실패했습니다");
+		}
 
 		return findById(todoId);
 	}
-
-
 
 }

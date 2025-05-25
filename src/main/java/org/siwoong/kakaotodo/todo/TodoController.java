@@ -45,7 +45,7 @@ public class TodoController {
 	@DeleteMapping("/{todoId}")
 	public ResponseEntity<Void> deleteTodo(@PathVariable Long todoId, @RequestBody @Valid DeleteTodoRequest req) {
 		todoService.delete(todoId, req);
-		return ResponseEntity.noContent().build();
+		return ResponseEntity.ok().build();
 	}
 
 	// 수정
