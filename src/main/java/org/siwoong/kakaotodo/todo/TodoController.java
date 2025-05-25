@@ -40,16 +40,16 @@ public class TodoController {
 	}
 
 	// 삭제
-	@DeleteMapping
-	public ResponseEntity<Void> deleteTodo(@RequestBody @Valid DeleteTodoRequest req) {
-		todoService.delete(req);
+	@DeleteMapping("/{todoId}")
+	public ResponseEntity<Void> deleteTodo(@PathVariable Long todoId, @RequestBody @Valid DeleteTodoRequest req) {
+		todoService.delete(todoId, req);
 		return ResponseEntity.noContent().build();
 	}
 
 	// 수정
-	@PutMapping("{postId}")
-	public ResponseEntity<GetTodoResponse> updateTodo(@PathVariable Integer postId, @RequestBody UpdateTodoRequest req){
-		return ResponseEntity.ok(todoService.update(postId, req));
+	@PutMapping("{todoId}")
+	public ResponseEntity<GetTodoResponse> updateTodo(@PathVariable Long todoId, @RequestBody UpdateTodoRequest req){
+		return ResponseEntity.ok(todoService.update(todoId, req));
 	}
 
 

@@ -56,16 +56,16 @@ public class TodoService {
 	}
 
 	// 삭제
-	public void delete(DeleteTodoRequest request) {
+	public void delete(Long todoId, DeleteTodoRequest request) {
 		String selectSql = "SELECT password FROM todos WHERE id = ?";
-		String dbPassword = jdbc.query(selectSql, (rs) -> rs.next() ? rs.getString("password") : null, request.todoId());
+		String dbPassword = jdbc.query(selectSql, (rs) -> rs.next() ? rs.getString("password") : null, todoId);
 
 		if (dbPassword == null) throw new RuntimeException("해당 id를 가진 todo 없음");
 
 		if(!dbPassword.equals(request.password())) throw new RuntimeException("비밀번호가 틀림");
 
 		String sql = "DELETE FROM todos WHERE id = ?";
-		jdbc.update(sql, request.todoId());
+		jdbc.update(sql, todoId);
 	}
 
 
