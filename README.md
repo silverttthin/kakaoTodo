@@ -2,7 +2,7 @@
 
 본 프로젝트는 카카오테크캠퍼스 BE 코스의 1단계 과정 2차 과제입니다.  
 SpringBoot + Mysql(docker로 띄움) + **JDBC**를 사용해 일정(todo)을 관리하는 앱입니다.  
-과제의 기초 요구사항은 
+ 
 ### Why JDBC why???
 <img width="643" alt="image" src="https://github.com/user-attachments/assets/21323108-6e88-4422-a7c9-53f9d529f31d" />
 
